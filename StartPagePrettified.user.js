@@ -1,15 +1,41 @@
 // ==UserScript==
-// @name         Start Page Prettified
+// @name         StartPagePrettified
 // @namespace    https://moodle.bbbaden.ch/
-// @version      0.1
+// @version      0.2.0
 // @description  Customizes your Moodle Startpage
 // @author       PianoNic
 // @match        https://moodle.bbbaden.ch/
-// @grant        none
+// @match        https://moodle.bbbaden.ch/userscript/extensions
+// @grant        GM_info
+// @require      https://github.com/black-backdoor/DataBridge/raw/main/DataBridge.lib.user.js
 // ==/UserScript==
 
 (function() {
     'use strict';
+
+    if(window.location.href == "https://moodle.bbbaden.ch/userscript/extensions"){
+        //------------------------ DataBridge ------------------------
+        // Create a new DataBridge
+        const UserScriptManagerCon = new Connection("BBBUserScriptManager");
+
+        // Register an event listener for the extensionInstalled event
+        Protocol.registerMessageType(UserScriptManagerCon, 'getInstalled', function (msg) {
+            UserScriptManagerCon.send({
+                "header": {
+                    "receiver": msg.header.sender,
+                    "protocolVersion": "1.0",
+                    "messageType": "extensionInstalled",
+                },
+                "body": {
+                    "script": {
+                        "scriptName": GM_info.script.name,
+                        "scriptVersion": GM_info.script.version,
+                    }
+                }
+            });
+        });
+        return;
+    }
 
     // Remove max-width from .pagelayout-standard #page.drawers .main-inner
     var styleElement = document.createElement('style');
