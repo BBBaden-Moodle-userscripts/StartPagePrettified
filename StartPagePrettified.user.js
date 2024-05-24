@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         StartPagePrettified
+// @name         Start Page Prettified
 // @namespace    https://moodle.bbbaden.ch/
-// @version      0.2.0
+// @version      0.3.0
 // @description  Customizes your Moodle Startpage
 // @author       PianoNic
 // @match        https://moodle.bbbaden.ch/
@@ -125,24 +125,30 @@
 
                     // Add course details to the coursebox div
                     var overlayDivText = document.createElement('div');
+                    var overlayDivText = document.createElement('div');
                     overlayDivText.innerHTML += `
-                        <h2>${course.id}</h2>
-                        <h4>${course.fullname}</h4>
-                        <p>${course.shortname}</p>
-                        <a href="${course.viewurl}" target="_blank">
-                            <button class="btn btn-outline-secondary btn-sm">Go to Course</button>
-                        </a>
+                        <h2 style="color: white;">${course.id}</h2>
+                        <h4 style="color: white;">${course.fullname}</h4>
+                        <p style="color: white;">${course.shortname}</p>
+
+                        <div class="mt-auto">
+                            <a href="${course.viewurl}" target="_blank">
+                                <button class="btn btn-outline-light btn-sm w-100">Go to Course</button>
+                            </a>
+                        </div>
                     `;
 
-                    overlayDivText.style.backgroundColor = "rgba(0, 0, 0, 0.6)";
+                    overlayDivText.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
                     overlayDivText.style.borderRadius = '0.5rem';
                     overlayDivText.style.padding = '0.5rem';
-                    overlayDivText.style.height = "100%"
+                    overlayDivText.style.height = "100%";
+                    overlayDivText.className = "d-flex flex-column";
                     // Append the overlay div to the coursebox div
                     courseDiv.appendChild(overlayDivText);
 
                     // Append the coursebox div to the container div
                     containerDiv.appendChild(courseDiv);
+
                 });
             })
             .catch(error => console.log('error', error));
