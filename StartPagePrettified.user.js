@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Start Page Prettified
 // @namespace    https://moodle.bbbaden.ch/
-// @version      0.3.0
+// @version      0.4.0
 // @description  Customizes your Moodle Startpage
 // @author       PianoNic
 // @match        https://moodle.bbbaden.ch/
@@ -153,4 +153,94 @@
             })
             .catch(error => console.log('error', error));
     }
+
+    document.querySelector('.courses.frontpage-course-list-enrolled').classList.add('row', 'p-0', 'm-0');
+
+    document.querySelectorAll('.coursebox.clearfix').forEach(courseBox => {
+        // Add Bootstrap column class with custom margins
+        courseBox.classList.add('col-lg-4', 'col-md-6');
+        courseBox.style.margin = '0'; // Horizontal margins only
+
+        // Extract course information
+        const courseId = courseBox.getAttribute('data-courseid');
+        const courseName = courseBox.querySelector('.coursename a').innerText;
+        const courseLink = courseBox.querySelector('.coursename a').href;
+
+        // Check if image exists and extract URL
+        const imageElement = courseBox.querySelector('.courseimage img');
+        const imageUrl = imageElement ? imageElement.src : courseBox.querySelector('img') ? courseBox.querySelector('img').src : null;
+
+        // Create overlay div
+        var overlayDivText = document.createElement('div');
+        overlayDivText.innerHTML += `
+            <h2 style="color: white;">${courseId}</h2>
+            <h4 style="color: white;">${courseName}</h4>
+
+            <div class="mt-auto">
+                <a href="${courseLink}" target="_blank">
+                    <button class="btn btn-outline-light btn-sm w-100">Go to Course</button>
+                </a>
+            </div>
+        `;
+
+        overlayDivText.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
+        overlayDivText.style.borderRadius = '0.5rem';
+        overlayDivText.style.padding = '0.5rem';
+        overlayDivText.style.height = "100%";
+        overlayDivText.style.width = "100%";
+        overlayDivText.className = "d-flex flex-column";
+
+        // Style the course box to have the image as background if image exists
+        courseBox.style.position = 'relative';
+        if (imageUrl) {
+            courseBox.style.backgroundImage = `url(${imageUrl})`;
+            courseBox.style.backgroundSize = 'cover';
+            courseBox.style.backgroundPosition = 'center';
+        } else {
+            courseBox.style.backgroundColor = '#333'; // Fallback background color
+        }
+        courseBox.style.borderRadius = '0.5rem';
+        courseBox.style.overflow = 'hidden';
+        courseBox.style.height = '200px';
+
+        // Create an overlay container
+        var overlayContainer = document.createElement('div');
+        overlayContainer.style.position = 'absolute';
+        overlayContainer.style.top = '0';
+        overlayContainer.style.left = '0';
+        overlayContainer.style.width = '100%';
+        overlayContainer.style.height = '100%';
+        overlayContainer.style.display = 'flex';
+        overlayContainer.style.flexDirection = 'column';
+        overlayContainer.style.justifyContent = 'center';
+        overlayContainer.style.alignItems = 'center';
+
+        // Append the overlay div to the overlay container
+        overlayContainer.appendChild(overlayDivText);
+
+        // Append the overlay container to the course box
+        courseBox.appendChild(overlayContainer);
+
+        // Remove divs with the classes "info" and "content"
+        const infoDiv = courseBox.querySelector('.info');
+        if (infoDiv) {
+            infoDiv.remove();
+        }
+
+        const contentDiv = courseBox.querySelector('.content');
+        if (contentDiv) {
+            contentDiv.remove();
+        }
+    });
+
+    // Select the 'Alle Kurse' button and adjust its style
+    const pagingMoreLinkButton = document.querySelector('.paging.paging-morelink');
+
+    if (pagingMoreLinkButton) {
+      pagingMoreLinkButton.className = "coursebox clearfix even col-lg-4 col-md-6";
+      const button = pagingMoreLinkButton.querySelector("a.btn");
+      button.style.height = "100%";
+      button.style.textAlign = "center"; // Center-align the text
+    }
+
 })();
