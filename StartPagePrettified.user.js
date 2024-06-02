@@ -8,6 +8,8 @@
 // @match        https://moodle.bbbaden.ch/userscript/extensions
 // @grant        GM_info
 // @require      https://github.com/black-backdoor/DataBridge/raw/main/DataBridge.lib.user.js
+// @downloadURL  https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/raw/main/StartPagePrettified.user.js
+// @updateURL    https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/raw/main/StartPagePrettified.user.js
 // ==/UserScript==
 
 (function() {
