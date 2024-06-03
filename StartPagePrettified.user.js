@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Start Page Prettified
 // @namespace    https://moodle.bbbaden.ch/
-// @version      0.4.0
+// @version      0.4.1
 // @description  Customizes your Moodle Startpage
 // @author       PianoNic
 // @match        https://moodle.bbbaden.ch/
@@ -51,7 +51,8 @@
     // Create an h2 element with the text "Last Visited"
     var heading = document.createElement('h2');
     heading.textContent = 'Last Visited';
-
+    heading.style.marginLeft = "10px";
+    
     // Append the heading to the new div
     newDiv.appendChild(heading);
 
