@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Start Page Prettified
 // @namespace    https://moodle.bbbaden.ch/
-// @version      0.4.1
+// @version      0.5.0
 // @description  Customizes your Moodle Startpage
 // @author       PianoNic
 // @match        https://moodle.bbbaden.ch/
@@ -15,7 +15,7 @@
 (function() {
     'use strict';
 
-    if(window.location.href == "https://moodle.bbbaden.ch/userscript/extensions"){
+    if (window.location.href == "https://moodle.bbbaden.ch/userscript/extensions") {
         //------------------------ DataBridge ------------------------
         // Create a new DataBridge
         const UserScriptManagerCon = new Connection("BBBUserScriptManager");
@@ -39,20 +39,14 @@
         return;
     }
 
-    // Remove max-width from .pagelayout-standard #page.drawers .main-inner
-    var styleElement = document.createElement('style');
-    styleElement.innerHTML = '.pagelayout-standard #page.drawers .main-inner, body.limitedwidth #page.drawers .main-inner { max-width: none; }';
-    document.head.appendChild(styleElement);
-
     // Create a new div with the class main-inner
     var newDiv = document.createElement('div');
-    newDiv.className = 'main-inner';
 
     // Create an h2 element with the text "Last Visited"
     var heading = document.createElement('h2');
     heading.textContent = 'Last Visited';
     heading.style.marginLeft = "10px";
-    
+
     // Append the heading to the new div
     newDiv.appendChild(heading);
 
@@ -121,13 +115,11 @@
                     courseDiv.style.margin = '0.5rem';
                     courseDiv.style.borderRadius = '0.5rem';
 
-
                     courseDiv.style.backgroundImage = `url('${course.courseimage}')`; // Set the background image
                     courseDiv.style.backgroundSize = 'cover'; // Ensure the background image covers the entire div
                     courseDiv.style.backgroundPosition = 'center'; // Center the background image
 
                     // Add course details to the coursebox div
-                    var overlayDivText = document.createElement('div');
                     var overlayDivText = document.createElement('div');
                     overlayDivText.innerHTML += `
                         <h2 style="color: white;">${course.id}</h2>
@@ -151,7 +143,6 @@
 
                     // Append the coursebox div to the container div
                     containerDiv.appendChild(courseDiv);
-
                 });
             })
             .catch(error => console.log('error', error));
@@ -246,4 +237,35 @@
       button.style.textAlign = "center"; // Center-align the text
     }
 
+    // Remove max-width from .pagelayout-standard #page.drawers
+    var styleElement = document.createElement('style');
+    styleElement.innerHTML = '.pagelayout-standard #page.drawers, body.limitedwidth #page.drawers { max-width: none; }';
+    document.head.appendChild(styleElement);
+
+    // Move the search form to the top of #page and delete the original
+    var searchFormWrapper = document.querySelector('.box.py-3.d-flex.justify-content-center');
+    var headerElement = document.getElementById('page-header');
+    var pageDiv = document.getElementById('page');
+
+    if (searchFormWrapper && pageDiv) {
+        var searchForm = searchFormWrapper.querySelector('.simplesearchform');
+        if (searchForm) {
+            searchFormWrapper.remove();
+            pageDiv.insertBefore(searchFormWrapper, pageDiv.firstChild);
+        }
+    }
+
+    // Move the header to the top of #page
+    if (headerElement && pageDiv) {
+        headerElement.remove();
+        pageDiv.insertBefore(headerElement, pageDiv.firstChild);
+    }
+
+    // Select all elements with the class 'main-inner'
+    const elements = document.querySelectorAll('.main-inner');
+
+    // Loop through each element and remove the 'main-inner' class
+    elements.forEach(element => {
+      element.classList.remove('main-inner');
+    });
 })();
