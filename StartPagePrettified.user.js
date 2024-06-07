@@ -10,6 +10,7 @@
 // @require      https://github.com/black-backdoor/DataBridge/raw/main/DataBridge.lib.user.js
 // @downloadURL  https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/raw/main/StartPagePrettified.user.js
 // @updateURL    https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/raw/main/StartPagePrettified.user.js
+// @icon         https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/blob/main/icon/icon.png?raw=true
 // ==/UserScript==
 
 (function() {
