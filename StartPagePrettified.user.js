@@ -7,7 +7,7 @@
 // @match        https://moodle.bbbaden.ch/
 // @match        https://moodle.bbbaden.ch/userscript/extensions
 // @grant        GM_info
-// @require      https://github.com/black-backdoor/DataBridge/raw/main/DataBridge.lib.user.js
+// @require      https://github.com/BBBaden-Moodle-userscripts/UserscriptBridgeLib/raw/main/userscriptBridge.lib.js
 // @downloadURL  https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/raw/main/StartPagePrettified.user.js
 // @updateURL    https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/raw/main/StartPagePrettified.user.js
 // @icon         https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/blob/main/icon/icon.png?raw=true
