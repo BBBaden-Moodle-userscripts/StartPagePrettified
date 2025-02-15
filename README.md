@@ -18,4 +18,4 @@
 - **Pianonic** - [GitHub Profile](https://github.com/Pianonic)
 
 ## Support
-- If you encounter issues or have suggestions, please open an issue on the [GitHub repository](https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/issues).
+- If you encounter issues or have suggestions, please open an issue on the [GitHub repository](https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/issues). 
