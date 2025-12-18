@@ -2,9 +2,8 @@
 
 [![Static Badge](https://img.shields.io/badge/Install-Script-dark_green?style=for-the-badge&color=dark_green)](https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/raw/main/StartPagePrettified.user.js)
 
-## Features
-![IMG](/assets/image.png)
-
+## Preview
+<img width="1285" height="1503" alt="image" src="https://github.com/user-attachments/assets/6cd794fe-f3dc-4084-aa9c-4f137e25ba34" />
 
 ## Installation
 
