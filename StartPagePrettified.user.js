@@ -5,6 +5,7 @@
 // @description  Customizes your Moodle Startpage with Bootstrap Cards
 // @author       PianoNic
 // @match        https://moodle.bbbaden.ch/
+// @match        https://moodle.bbbaden.ch/userscript/extensions
 // @grant        GM_info
 // @require      https://github.com/BBBaden-Moodle-userscripts/LoggingLibrary/raw/refs/heads/main/Logging.lib.user.js
 // @require      https://github.com/BBBaden-Moodle-userscripts/UserscriptBridgeLib/raw/main/userscriptBridge.lib.js
@@ -21,6 +22,12 @@
     // Initialize bridge connection for userscript manager
     const connection = new Script();
     Logger.success('startpage', 'Bridge connection initialized');
+
+    // If on extensions page, only initialize bridge and return
+    if (window.location.href === 'https://moodle.bbbaden.ch/userscript/extensions') {
+        Logger.info('startpage', 'On extensions page - bridge only mode');
+        return;
+    }
 
     // CSS Grid styling
     var styleElement = document.createElement('style');
