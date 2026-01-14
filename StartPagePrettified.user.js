@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name         Start Page Prettified
 // @namespace    https://moodle.bbbaden.ch/
-// @version      1.0.0
+// @version      1.1.0
 // @description  Customizes your Moodle Startpage with Bootstrap Cards
 // @author       PianoNic
 // @match        https://moodle.bbbaden.ch/
-// @match        https://moodle.bbbaden.ch/userscript/extensions
 // @grant        GM_info
+// @require      https://github.com/BBBaden-Moodle-userscripts/LoggingLibrary/raw/refs/heads/main/Logging.lib.user.js
 // @require      https://github.com/BBBaden-Moodle-userscripts/UserscriptBridgeLib/raw/main/userscriptBridge.lib.js
 // @downloadURL  https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/raw/main/StartPagePrettified.user.js
 // @updateURL    https://github.com/BBBaden-Moodle-userscripts/StartPagePrettified/raw/main/StartPagePrettified.user.js
@@ -16,27 +16,11 @@
 (function() {
     'use strict';
 
-    if (window.location.href == "https://moodle.bbbaden.ch/userscript/extensions") {
-        //------------------------ DataBridge ------------------------
-        const UserScriptManagerCon = new Connection("BBBUserScriptManager");
+    Logger.info('startpage', 'v1.1.0 - Initializing');
 
-        Protocol.registerMessageType(UserScriptManagerCon, 'getInstalled', function (msg) {
-            UserScriptManagerCon.send({
-                "header": {
-                    "receiver": msg.header.sender,
-                    "protocolVersion": "1.0",
-                    "messageType": "extensionInstalled",
-                },
-                "body": {
-                    "script": {
-                        "scriptName": GM_info.script.name,
-                        "scriptVersion": GM_info.script.version,
-                    }
-                }
-            });
-        });
-        return;
-    }
+    // Initialize bridge connection for userscript manager
+    const connection = new Script();
+    Logger.success('startpage', 'Bridge connection initialized');
 
     // CSS Grid styling
     var styleElement = document.createElement('style');
@@ -72,7 +56,10 @@
     document.head.appendChild(styleElement);
 
     var pageDiv = document.getElementById('page');
-    if (!pageDiv) return;
+    if (!pageDiv) {
+        Logger.warn('startpage', 'Page element not found');
+        return;
+    }
 
     // Create main container
     var mainContainer = document.createElement('div');
@@ -149,7 +136,7 @@
                 lastVisitedGrid.appendChild(card);
             });
         })
-        .catch(error => console.log('Error fetching recent courses:', error));
+        .catch(error => Logger.error('startpage', 'Error fetching recent courses:', error));
     }
 
     // Create "All Courses" section
@@ -241,4 +228,6 @@
     document.querySelectorAll('.main-inner').forEach(element => {
         element.classList.remove('main-inner');
     });
+
+    Logger.success('startpage', 'Initialization complete');
 })();
