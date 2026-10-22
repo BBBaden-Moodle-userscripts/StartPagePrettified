@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Start Page Prettified
 // @namespace    https://moodle.bbbaden.ch/
-// @version      1.2.0
+// @version      1.2.1
 // @description  Customizes your Moodle Startpage with Bootstrap Cards
 // @author       PianoNic
 // @match        https://moodle.bbbaden.ch/
@@ -20,7 +20,7 @@
     'use strict';
 
     if (UserscriptBridge.registerScript() || !UserscriptBridge.runOnce()) return;
-    Logger.info('startpage', 'v1.2.0 - Initializing');
+    Logger.info('startpage', 'v1.2.1 - Initializing');
 
     // CSS Grid styling
     var styleElement = document.createElement('style');
@@ -81,6 +81,23 @@
     mainContainer.appendChild(lastVisitedSection);
     pageDiv.insertBefore(mainContainer, pageDiv.firstChild);
 
+    // Inline placeholder, so it can't fail to load like the course image or an external service
+    function placeholderImage(id, label) {
+        var hue = (Number(id) * 47) % 360;
+        var text = (label || '').replace(/[<>&"']/g, '').trim();
+        if (text.length > 22) text = text.slice(0, 21).trim() + '…';
+        var svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" viewBox="0 0 400 200">
+            <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="hsl(${hue},55%,55%)"/>
+                <stop offset="1" stop-color="hsl(${(hue + 40) % 360},55%,40%)"/>
+            </linearGradient></defs>
+            <rect width="400" height="200" fill="url(#g)"/>
+            <text x="200" y="112" font-family="sans-serif" font-size="28" font-weight="bold"
+                  fill="#fff" fill-opacity="0.9" text-anchor="middle">${text}</text>
+        </svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
     function createCourseCard({ id, name, shortname, url, image }) {
         var card = document.createElement('div');
         card.className = 'card h-100';
@@ -94,7 +111,12 @@
             </div>
         `;
         var img = card.querySelector('img');
-        img.src = image || `https://picsum.photos/seed/${id}/400/200`;
+        var placeholder = placeholderImage(id, shortname || name);
+        img.onerror = () => {
+            img.onerror = null;
+            img.src = placeholder;
+        };
+        img.src = image || placeholder;
         img.alt = name || '';
         card.querySelector('.badge').textContent = id;
         card.querySelector('.card-title').textContent = name || '';
@@ -175,22 +197,18 @@
             .catch(error => Logger.error('startpage', 'Error fetching enrolled courses:', error));
     }
 
-    // Add "Alle Kurse" button
-    const pagingMoreLinkButton = document.querySelector('.paging.paging-morelink');
-    if (pagingMoreLinkButton) {
-        var allCoursesCard = document.createElement('div');
-        allCoursesCard.className = 'card h-100 d-flex align-items-center justify-content-center';
+    // Add "Alle Kurse" button below the grid, using Moodle's own link when the page has one
+    const pagingMoreLink = document.querySelector('.paging.paging-morelink');
+    var allCoursesButton = document.createElement('a');
+    allCoursesButton.className = 'btn btn-primary btn-lg';
+    allCoursesButton.textContent = 'Alle Kurse';
+    allCoursesButton.href = pagingMoreLink?.querySelector('a')?.href || '/my/courses.php';
 
-        const button = pagingMoreLinkButton.querySelector("a.btn");
-        if (button) {
-            button.className = "btn btn-primary btn-lg";
-            button.textContent = 'Alle Kurse';
-            allCoursesCard.appendChild(button);
-        }
-
-        allCoursesGrid.appendChild(allCoursesCard);
-        pagingMoreLinkButton.style.display = 'none';
-    }
+    var allCoursesFooter = document.createElement('div');
+    allCoursesFooter.className = 'text-center mt-4';
+    allCoursesFooter.appendChild(allCoursesButton);
+    allCoursesSection.appendChild(allCoursesFooter);
+    if (pagingMoreLink) pagingMoreLink.style.display = 'none';
 
     // Move search form to top
     var searchFormWrapper = document.querySelector('.box.py-3.d-flex.justify-content-center');
