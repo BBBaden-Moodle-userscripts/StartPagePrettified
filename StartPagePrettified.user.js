@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         Start Page Prettified
 // @namespace    https://moodle.bbbaden.ch/
-// @version      1.1.0
+// @version      1.2.0
 // @description  Customizes your Moodle Startpage with Bootstrap Cards
 // @author       PianoNic
 // @match        https://moodle.bbbaden.ch/
 // @match        https://moodle.bbbaden.ch/userscript/extensions
+// @match        https://lms.bbbaden.ch/
+// @match        https://lms.bbbaden.ch/userscript/extensions
 // @grant        GM_info
 // @require      https://github.com/BBBaden-Moodle-userscripts/LoggingLibrary/raw/refs/heads/main/Logging.lib.user.js
 // @require      https://github.com/BBBaden-Moodle-userscripts/UserscriptBridgeLib/raw/main/userscriptBridge.lib.js
@@ -17,17 +19,8 @@
 (function() {
     'use strict';
 
-    Logger.info('startpage', 'v1.1.0 - Initializing');
-
-    // Initialize bridge connection for userscript manager
-    const connection = new Script();
-    Logger.success('startpage', 'Bridge connection initialized');
-
-    // If on extensions page, only initialize bridge and return
-    if (window.location.href === 'https://moodle.bbbaden.ch/userscript/extensions') {
-        Logger.info('startpage', 'On extensions page - bridge only mode');
-        return;
-    }
+    if (UserscriptBridge.registerScript() || !UserscriptBridge.runOnce()) return;
+    Logger.info('startpage', 'v1.2.0 - Initializing');
 
     // CSS Grid styling
     var styleElement = document.createElement('style');
@@ -88,62 +81,59 @@
     mainContainer.appendChild(lastVisitedSection);
     pageDiv.insertBefore(mainContainer, pageDiv.firstChild);
 
-    // Extract user ID and sesskey
-    var userIdElement = document.getElementById('nav-notification-popover-container');
-    var userId = userIdElement?.getAttribute('data-userid');
-
-    var logoutLink = document.querySelector('.logininfo a[href*="logout.php"]');
-    var extractedSesskey = null;
-
-    if (logoutLink) {
-        var sesskeyMatch = logoutLink.href.match(/sesskey=([^&]+)/);
-        if (sesskeyMatch && sesskeyMatch[1]) {
-            extractedSesskey = sesskeyMatch[1];
-        }
+    function createCourseCard({ id, name, shortname, url, image }) {
+        var card = document.createElement('div');
+        card.className = 'card h-100';
+        card.innerHTML = `
+            <img class="card-img-top">
+            <div class="card-body">
+                <span class="badge bg-danger text-white mb-2"></span>
+                <h5 class="card-title"></h5>
+                <p class="card-text"></p>
+                <a class="btn btn-primary">Go to Course</a>
+            </div>
+        `;
+        var img = card.querySelector('img');
+        img.src = image || `https://picsum.photos/seed/${id}/400/200`;
+        img.alt = name || '';
+        card.querySelector('.badge').textContent = id;
+        card.querySelector('.card-title').textContent = name || '';
+        var text = card.querySelector('.card-text');
+        if (shortname) text.textContent = shortname; else text.remove();
+        card.querySelector('a').href = url;
+        return card;
     }
 
-    // Fetch recent courses
-    if (userId && extractedSesskey) {
-        var raw = JSON.stringify([{
-            "index": 0,
-            "methodname": "core_course_get_recent_courses",
-            "args": {
-                "userid": userId,
-                "limit": 9
-            }
-        }]);
-
-        fetch(`https://moodle.bbbaden.ch/lib/ajax/service.php?sesskey=${extractedSesskey}&info=core_course_get_recent_courses`, {
+    // Moodle web service call (relative, works on moodle.bbbaden.ch and lms.bbbaden.ch)
+    function callService(methodname, args) {
+        return fetch(`/lib/ajax/service.php?sesskey=${sesskey}&info=${methodname}`, {
             method: 'POST',
-            body: raw,
-            redirect: 'follow'
+            body: JSON.stringify([{ index: 0, methodname, args }])
         })
         .then(response => response.json())
         .then(result => {
-            result[0].data.forEach(course => {
-                var card = document.createElement('div');
-                card.className = 'card h-100';
+            if (result[0].error) throw result[0].exception;
+            return result[0].data;
+        });
+    }
 
-                var cardImg = document.createElement('img');
-                cardImg.src = course.courseimage || `https://picsum.photos/seed/${course.id}/400/200`;
-                cardImg.className = 'card-img-top';
-                cardImg.alt = course.fullname;
+    var toCard = course => createCourseCard({
+        id: course.id,
+        name: course.fullname,
+        shortname: course.shortname,
+        url: course.viewurl,
+        image: course.courseimage
+    });
 
-                var cardBody = document.createElement('div');
-                cardBody.className = 'card-body';
-                cardBody.innerHTML = `
-                    <span class="badge bg-danger text-white mb-2">${course.id}</span>
-                    <h5 class="card-title">${course.fullname}</h5>
-                    <p class="card-text">${course.shortname}</p>
-                    <a href="${course.viewurl}" class="btn btn-primary">Go to Course</a>
-                `;
+    // Extract user ID and sesskey
+    var userId = document.getElementById('nav-notification-popover-container')?.getAttribute('data-userid');
+    var sesskey = document.querySelector('.logininfo a[href*="logout.php"]')?.href.match(/sesskey=([^&]+)/)?.[1];
 
-                card.appendChild(cardImg);
-                card.appendChild(cardBody);
-                lastVisitedGrid.appendChild(card);
-            });
-        })
-        .catch(error => Logger.error('startpage', 'Error fetching recent courses:', error));
+    // Fetch recent courses
+    if (userId && sesskey) {
+        callService('core_course_get_recent_courses', { userid: userId, limit: 9 })
+            .then(courses => courses.forEach(course => lastVisitedGrid.appendChild(toCard(course))))
+            .catch(error => Logger.error('startpage', 'Error fetching recent courses:', error));
     }
 
     // Create "All Courses" section
@@ -165,36 +155,24 @@
     var coursesContainer = document.querySelector('.courses.frontpage-course-list-enrolled');
     if (coursesContainer) {
         document.querySelectorAll('.coursebox.clearfix').forEach(courseBox => {
-            const courseId = courseBox.getAttribute('data-courseid');
-            const courseName = courseBox.querySelector('.coursename a')?.innerText;
-            const courseLink = courseBox.querySelector('.coursename a')?.href;
-
-            const imageElement = courseBox.querySelector('.courseimage img');
-            const imageUrl = imageElement?.src || courseBox.querySelector('img')?.src;
-
-            var card = document.createElement('div');
-            card.className = 'card h-100';
-
-            var cardImg = document.createElement('img');
-            cardImg.src = imageUrl || `https://picsum.photos/seed/${courseId}/400/200`;
-            cardImg.className = 'card-img-top';
-            cardImg.alt = courseName;
-            card.appendChild(cardImg);
-
-            var cardBody = document.createElement('div');
-            cardBody.className = 'card-body';
-            cardBody.innerHTML = `
-                <span class="badge bg-danger text-white mb-2">${courseId}</span>
-                <h5 class="card-title">${courseName}</h5>
-                <a href="${courseLink}" class="btn btn-primary">Go to Course</a>
-            `;
-            card.appendChild(cardBody);
-
-            allCoursesGrid.appendChild(card);
+            const courseLink = courseBox.querySelector('.coursename a');
+            allCoursesGrid.appendChild(createCourseCard({
+                id: courseBox.getAttribute('data-courseid'),
+                name: courseLink?.innerText,
+                url: courseLink?.href,
+                image: courseBox.querySelector('.courseimage img')?.src || courseBox.querySelector('img')?.src
+            }));
         });
 
         // Hide original courses container
         coursesContainer.style.display = 'none';
+    } else if (sesskey) {
+        // The start page of lms.bbbaden.ch has no enrolled course list, load it instead
+        callService('core_course_get_enrolled_courses_by_timeline_classification', {
+            classification: 'inprogress', limit: 0, offset: 0, sort: 'fullname'
+        })
+            .then(data => data.courses.forEach(course => allCoursesGrid.appendChild(toCard(course))))
+            .catch(error => Logger.error('startpage', 'Error fetching enrolled courses:', error));
     }
 
     // Add "Alle Kurse" button
