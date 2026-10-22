@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Start Page Prettified
 // @namespace    https://moodle.bbbaden.ch/
-// @version      1.2.1
+// @version      1.2.2
 // @description  Customizes your Moodle Startpage with Bootstrap Cards
 // @author       PianoNic
 // @match        https://moodle.bbbaden.ch/
@@ -20,11 +20,20 @@
     'use strict';
 
     if (UserscriptBridge.registerScript() || !UserscriptBridge.runOnce()) return;
-    Logger.info('startpage', 'v1.2.1 - Initializing');
+    Logger.info('startpage', 'v1.2.2 - Initializing');
 
     // CSS Grid styling
     var styleElement = document.createElement('style');
     styleElement.innerHTML = `
+        /* Moodle's own front page content (welcome text, course categories), replaced by the cards */
+        #region-main .sitetopic,
+        #region-main a.skip-block,
+        #frontpage-category-names,
+        #frontpage-category-combo,
+        #frontpage-available-course-list {
+            display: none !important;
+        }
+
         .card-img-top {
             height: 200px;
             object-fit: cover;
